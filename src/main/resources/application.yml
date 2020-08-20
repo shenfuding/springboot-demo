@@ -1,0 +1,22 @@
+spring:
+  profiles:
+    active: dev
+oauth2:
+  security:
+    clients:
+    - {clientId: wechat, clientSecret: wechatSecret, accessTokenValiditySeconds: 7200, refreshTokenValiditySeconds: 2592000}
+    - {clientId: h5, clientSecret: h5Secret, accessTokenValiditySeconds: 7200, refreshTokenValiditySeconds: 2592000}
+    - {clientId: boss, clientSecret: bossSecret, accessTokenValiditySeconds: 1800, refreshTokenValiditySeconds: 2592000}
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl #开启sql日志
+
+server:
+  id: 1
+binlog:
+  host: rm-echatwz95khhk40wn2y0k6uo.mysql.rds.aliyuncs.com
+  port: 3306
+  user: echat
+  password: echat^_^online123
+  database:
+    table: echat_database_dev.t_news_tag,echat_database_dev.t_user #指定监听的表格

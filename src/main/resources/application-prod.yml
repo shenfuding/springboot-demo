@@ -1,0 +1,9 @@
+app:
+  env: prod
+email:
+  from: shenokay@163.com - 生产环境
+  title: 恭喜您注册成功 - 生产环境
+  content: 请点击链接进行确认，以完成注册 - 生产环境
+
+server:
+  port: 8084

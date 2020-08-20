@@ -1,0 +1,96 @@
+app:
+  env: dev
+email:
+  from: shenokay@163.com - 测试环境
+  title: 恭喜您注册成功 - 测试环境
+  content: 请点击链接进行确认，以完成注册 - 测试环境
+server:
+  port: 8084
+
+spring:
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource
+    druid:
+      initial-size: 10
+      min-idle: 10
+      max-active: 50
+      max-wait: 60000
+      timeBetweenEvictionRunsMillis: 60000
+      minEvictableIdleTimeMillis: 30000
+      validationQuery: SELECT 1 FROM DUAL
+      testWhileIdle: true
+      testOnBorrow: false
+      testOnReturn: false
+      poolPreparedStatements: true
+      maxPoolPreparedStatementPerConnectionSize: 20
+      #filters: stat,wall,log4j,slf4j
+      connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=5000
+      useGlobalDataSourceStat: true
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      url: jdbc:mysql://rm-echatwz95khhk40wn2y0k6uo.mysql.rds.aliyuncs.com/echat_database_dev?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true
+      username: echat
+      password: echat^_^online123
+    #rabbitmq:
+    #addresses: localhost:5672 # 集群使用逗号分隔
+    #username: guest
+    #password: guest
+    #publisher-confirm-type: correlated # ACK 确认消息已发送到交换机
+    #publisher-returns: true # ACK 确认消息已发送到队列
+    #listener:
+    #  simple:
+    #    prefetch: 1 # 单个请求中处理的消息个数
+    #   concurrency: 1 # 消费者最小数量
+    #    max-concurrency: 10 #消费者最大数量
+  kafka:
+    bootstrap-servers: localhost:9092 # 集群配置多个，中间逗号隔开
+    producer:
+      buffer-memory: 33554432 # 默认是33554432，即32MB，是producer能使用的内存缓冲大小，在内存缓冲里大量的消息会缓冲在里面，形成一个一个的Batch，每个Batch里包含多条消息，然后有一个Sender线程会把多个Batch打包成一个Request发送到Kafka服务器上去。不宜设置过小，容易造成阻塞。
+      batch-size: 16 # 默认是16KB，每个batch存放的数据达到了16KB的大小才进行发送，生产环境可适当调大一点，如32或64，以提高吞吐量，但也不易过大，如果一条消息进入batch后，要等待10s才能凑满64KB才能发送，那等于说消息延迟了10s
+      linger-ms: 100 # 这是一个关键参数，当一个Batch被创建之后，最多过多久，不管这个Batch有没有写满，都必须将消息发送出去，防止Batch迟迟无法达到指定的size，此值视实际情况而定，需要先评估正常情况下凑满batch-size的时间，如果是90ms，那么linger.ms要设置的比90ms稍大一点，如果小于则会导致Batch永远无法凑满，形同虚设
+      retries: 3 # 如果消息发送失败则重试3次，防止网络闪断，如果重试次数配置的多最好是在异步发送的配置下启用，消息发送默认是异步的
+      retries-backoff-ms: 1000 # 重试时间间隔
+      # procedure要求leader在考虑完成请求之前收到的确认数，用于控制发送记录在服务端的持久化，其值可以为如下：
+      #   acks = 0 生产者将不会等待来自服务器的任何确认，最好不要使用此值。在这种情况下，无法保证服务器已收到记录，并且重试配置将不会生效（因为客户端通常不会知道任何故障）。
+      #   acks = 1 默认，只要Partition Leader接收到消息而且写入本地磁盘了，就认为成功了，不管其他的Follower有没有同步过去这条消息了。
+      #   acks = all Partition Leader接收到消息之后，还必须要求ISR列表里跟Leader保持同步的那些Follower都要把消息同步过去，才能认为这条消息是写入成功了。注意必须跟ISR列表里至少有2个以上的副本配合使用，起码是有一个Leader和一个Follower才可以。
+      acks: all
+    consumer:
+      max-poll-records: 200 # 每次拉取多少条消息  # max.poll.interval.ms 参数指定两次poll之间的最大间隔，默认5分钟，如果处理超时导致超过了拉取时间间隔会触发reblance
+      enable-auto-commit: false # 设置自动提交offset，默认为true，配合auto-commit-interval使用，如果reblance可能发生重复消费，最好设置为false即手动提交
+      # auto-offset-reset其值可以如下：
+      #   earliest 当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，从头开始消费
+      #   latest  当各分区下有已提交的offset时，从提交的offset开始消费；无提交的offset时，消费新产生的该分区下的数据
+      auto-offset-reset: earliest
+      session-timeout-ms: 30000 #当broker多久没有收到consumer的心跳请求后就触发rebalance
+      group-id: group-order
+  main:
+    allow-bean-definition-overriding: true
+
+sharding:
+  jdbc:
+    datasource:
+      names: master,slave
+      master:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://rm-echatwz95khhk40wn2y0k6uo.mysql.rds.aliyuncs.com/echat_database_dev?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true
+        username: echat
+        password: echat^_^online123
+      slave:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://rm-echatwz95khhk40wn2y0k6uo.mysql.rds.aliyuncs.com/echat_database_prod?characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true
+        username: echat
+        password: echat^_^online123
+    config:
+      props:
+        sql.show: true  #显示SQL路由日志
+      masterslave:
+        load-balance-algorithm-type: round_robin # 配置从库负载均衡算法类型，可选值：ROUND_ROBIN(轮询)，RANDOM（随机）
+        name: ds #最终的数据源名称
+        master-data-source-name: master  #主库数据源名称
+        slave-data-source-names: slave #从库数据源名称，多个从库使用逗号分隔
+
+
+
+
